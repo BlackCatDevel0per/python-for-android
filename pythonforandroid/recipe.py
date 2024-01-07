@@ -191,7 +191,7 @@ class Recipe(metaclass=RecipeMeta):
 
             url_hash = hashlib.sha1(url.encode()).hexdigest()
             # TODO: Paste cached filename under file extension.. (re or using `Path`.. & etc.)
-            cached_recipe = Path(cache_dir, Path(f'{target}_{url_hash}').stem)
+            cached_recipe = Path(cache_dir, Path(f'{Path(target).stem}_{url_hash}'))
 
             if cached_recipe.exists():
                 info(
