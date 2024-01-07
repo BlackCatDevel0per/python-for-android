@@ -189,7 +189,9 @@ class Recipe(metaclass=RecipeMeta):
             cache_dir = Path(Path.home(), ".buildozer/cache/recipes")
             cache_dir.mkdir(parents=True, exist_ok=True)
 
-            cached_recipe = Path(cache_dir, Path(target).stem)
+            url_hash = hashlib.sha1(url.encode()).hexdigest()
+            # TODO: Paste cached filename under file extension.. (re or using `Path`.. & etc.)
+            cached_recipe = Path(cache_dir, Path(f'{target}_{url_hash}').stem)
 
             if cached_recipe.exists():
                 info(
