@@ -4,6 +4,8 @@ import glob
 import hashlib
 from re import match
 
+from pathlib import Path
+
 import sh
 import shutil
 import fnmatch
@@ -180,6 +182,28 @@ class Recipe(metaclass=RecipeMeta):
         if cwd:
             target = join(cwd, target)
 
+        # TODO: Move into other place..
+        # FIXME: Use other dir for caching stuff..
+        use_cache_dir = environ.get('USE_P4A_RECIPES_CACHING')
+        if use_cache_dir:
+            cache_dir = Path(Path.home(), ".buildozer/cache/recipes")
+            cache_dir.mkdir(parents=True, exist_ok=True)
+
+            cached_recipe = Path(cache_dir, Path(target).stem)
+
+            if cached_recipe.exists():
+                info(
+                    'Recipe {} from {} already exists in cache `{}`, linking..'.format(
+                        self.name, url, cached_recipe,
+                    ),
+                )
+                Path(target).symlink_to(cached_recipe)
+                info('Linking target `{}` to `{}`'.format(cached_recipe, target))
+                return target
+
+            orig_target = target
+            target = str(cached_recipe)
+
         parsed_url = urlparse(url)
         if parsed_url.scheme in ('http', 'https'):
             def report_hook(index, blksize, size):
@@ -215,6 +239,10 @@ class Recipe(metaclass=RecipeMeta):
                 finally:
                     url_opener.addheaders = url_orig_headers
                 break
+
+            if use_cache_dir:
+                Path(orig_target).symlink_to(cached_recipe)
+
             return target
         elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
             if not isdir(target):
@@ -237,6 +265,10 @@ class Recipe(metaclass=RecipeMeta):
                     shprint(sh.git, 'pull')
                     shprint(sh.git, 'pull', '--recurse-submodules')
                 shprint(sh.git, 'submodule', 'update', '--recursive', '--init', '--depth', '1')
+
+            if use_cache_dir:
+                Path(orig_target).symlink_to(cached_recipe)
+
             return target
 
     def apply_patch(self, filename, arch, build_dir=None):
@@ -349,6 +381,7 @@ class Recipe(metaclass=RecipeMeta):
             info('P4A_{}_DIR is set, skipping download for {}'.format(
                 self.name, self.name))
             return
+
         self.download()
 
     def download(self):
