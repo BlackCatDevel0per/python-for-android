@@ -34,6 +34,7 @@ class KivyRecipe(CythonRecipe):
     # WARNING: Remove this patch when a new Kivy version is released.
     patches = [("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue)]
 
+
     def cythonize_build(self, env, build_dir='.'):
         super().cythonize_build(env, build_dir=build_dir)
 
@@ -50,6 +51,7 @@ class KivyRecipe(CythonRecipe):
                 shprint(sh.cp, '-r', join('kivy', 'include'),
                         join(dirn, 'kivy'))
 
+
     def cythonize_file(self, env, build_dir, filename):
         # We can ignore a few files that aren't important to the
         # android build, and may not work on Android anyway
@@ -57,6 +59,7 @@ class KivyRecipe(CythonRecipe):
         if basename(filename) in do_not_cythonize:
             return
         super().cythonize_file(env, build_dir, filename)
+
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
