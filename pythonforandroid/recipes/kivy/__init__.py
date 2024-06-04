@@ -22,7 +22,7 @@ def is_kivy_affected_by_deadlock_issue(recipe=None, arch=None):
 
 
 class KivyRecipe(CythonRecipe):
-    version = '2.2.1'
+    version = '2.3.0'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
@@ -33,6 +33,7 @@ class KivyRecipe(CythonRecipe):
     # See: https://github.com/kivy/kivy/pull/8025
     # WARNING: Remove this patch when a new Kivy version is released.
     patches = [("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue)]
+
 
     def cythonize_build(self, env, build_dir='.'):
         super().cythonize_build(env, build_dir=build_dir)
@@ -50,6 +51,7 @@ class KivyRecipe(CythonRecipe):
                 shprint(sh.cp, '-r', join('kivy', 'include'),
                         join(dirn, 'kivy'))
 
+
     def cythonize_file(self, env, build_dir, filename):
         # We can ignore a few files that aren't important to the
         # android build, and may not work on Android anyway
@@ -57,6 +59,7 @@ class KivyRecipe(CythonRecipe):
         if basename(filename) in do_not_cythonize:
             return
         super().cythonize_file(env, build_dir, filename)
+
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
@@ -66,10 +69,11 @@ class KivyRecipe(CythonRecipe):
             env['USE_SDL2'] = '1'
             env['KIVY_SPLIT_EXAMPLES'] = '1'
             sdl2_mixer_recipe = self.get_recipe('sdl2_mixer', self.ctx)
+            sdl2_image_recipe = self.get_recipe('sdl2_image', self.ctx)
             env['KIVY_SDL2_PATH'] = ':'.join([
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include'),
-                join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_image'),
                 *sdl2_mixer_recipe.get_include_dirs(arch),
+                *sdl2_image_recipe.get_include_dirs(arch),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
             ])
 
@@ -77,3 +81,4 @@ class KivyRecipe(CythonRecipe):
 
 
 recipe = KivyRecipe()
+
